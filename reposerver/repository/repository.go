@@ -77,6 +77,7 @@ var (
 	// helmConcurrencyDefault if true then helm concurrent manifest generation is enabled
 	// TODO: remove env variable and usage of .argocd-allow-concurrency once we are sure that it is safe to enable it by default
 	helmConcurrencyDefault = env.ParseBoolFromEnv("ARGOCD_HELM_ALLOW_CONCURRENCY", false)
+	shortShaLength         = env.ParseNumFromEnv("ARGOCD_REPO_SERVER_SHORT_SHA_LENGTH", 7, 7, 32)
 )
 
 // Service implements ManifestService interface
@@ -1464,10 +1465,7 @@ func GenerateManifests(ctx context.Context, appPath, repoRoot, revision string, 
 }
 
 func newEnv(q *apiclient.ManifestRequest, revision string) *v1alpha1.Env {
-	shortRevision := revision
-	if len(shortRevision) > 7 {
-		shortRevision = shortRevision[:7]
-	}
+	shortRevision := revision[:shortShaLength]
 	return &v1alpha1.Env{
 		&v1alpha1.EnvEntry{Name: "ARGOCD_APP_NAME", Value: q.AppName},
 		&v1alpha1.EnvEntry{Name: "ARGOCD_APP_NAMESPACE", Value: q.Namespace},
